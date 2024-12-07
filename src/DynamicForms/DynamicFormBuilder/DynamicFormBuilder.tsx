@@ -1,46 +1,9 @@
 import React, { useState, useEffect } from "react";
-
-interface ValidationRule {
-  rule: string | ((value: any) => boolean);
-  message?: string;
-}
-
-interface InputConfig {
-  name: string;
-  label?: string;
-  placeholder?: string;
-  validationRules?: ValidationRule[];
-  filter?: string | ((value: string) => boolean);
-  transformer?: string | ((value: string) => string);
-  renderIf?: (form: Record<string, any>) => boolean;
-  autocomplete?: boolean;
-}
-
-interface SubmitButtonConfig {
-  text: string;
-  className?: string;
-}
-
-interface DynamicFormBuilderProps {
-  defaultValues?: Record<string, any>;
-  inputs: InputConfig[];
-  onChange?: (data: { valid: boolean; data: Record<string, any> }) => void;
-  onSubmit?: (data: {
-    valid: boolean;
-    data: Record<string, any>;
-    errors: Record<string, any>;
-  }) => void;
-  formErrors?: Record<string, any>;
-  validationTimeout?: number;
-  submitButton?: SubmitButtonConfig;
-  classPrefix?: string;
-  defaultInputClass?: string;
-  invalidInputClass?: string;
-  validInputClass?: string;
-  defaultLabelClass?: string;
-  defaultValidationErrorClass?: string;
-  defaultContainerClass?: string;
-}
+import {
+  ValidationRule,
+  InputConfig,
+  DynamicFormBuilderProps,
+} from "../../types/alltypes.type";
 
 const DynamicFormBuilder: React.FC<DynamicFormBuilderProps> = ({
   defaultValues = {},
@@ -66,6 +29,8 @@ const DynamicFormBuilder: React.FC<DynamicFormBuilderProps> = ({
   const [randomisedFields, setRandomisedFields] = useState<
     Record<string, string>
   >({});
+
+  console.log("hello ", inputs);
 
   const filterRules: Record<string, (value: string) => boolean> = {
     numeric: (value) => /^$|^[0-9]+$/.test(value),
@@ -100,7 +65,6 @@ const DynamicFormBuilder: React.FC<DynamicFormBuilderProps> = ({
     const renderableFields: string[] = [];
 
     flatInputs.forEach(({ name, renderIf, autocomplete }) => {
-      // Only apply renderIf logic if it's defined
       if (typeof renderIf === "function" && !renderIf(form)) {
         delete newForm[name];
         delete newValidationErrors[name];
@@ -115,7 +79,6 @@ const DynamicFormBuilder: React.FC<DynamicFormBuilderProps> = ({
       }
     });
 
-    // Only set state if values have changed
     setRandomisedFields((prev) => {
       if (JSON.stringify(prev) !== JSON.stringify(newRandomisedFields)) {
         return newRandomisedFields;
@@ -219,7 +182,7 @@ const DynamicFormBuilder: React.FC<DynamicFormBuilderProps> = ({
   };
 
   return (
-    <div>
+    <div className="">
       {inputs.map((input, index) => (
         <div key={index} className={`${classPrefix}-${defaultContainerClass}`}>
           <label

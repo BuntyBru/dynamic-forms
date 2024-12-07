@@ -1,15 +1,12 @@
 import React, { useState, ChangeEvent, useEffect } from "react";
-import DynamicFormBuilder from "./DynamicFormBuilder";
-
-type SubmitResult = {
-  valid: boolean;
-  data: Record<string, any>;
-  errors: Record<string, any>;
-};
+import DynamicFormBuilder from "../DynamicFormBuilder/DynamicFormBuilder";
+import "./jsoneditor.scss";
+import { SubmitResult } from "../../types/alltypes.type";
 
 const DynamicFormWithJSONEditor: React.FC = () => {
   const [formData, setFormData] = useState<Record<string, any>>({});
   const [submitResult, setSubmitResult] = useState<SubmitResult | null>(null);
+
   const [formInputsJson, setFormInputsJson] = useState<string>(
     JSON.stringify(
       [
@@ -51,7 +48,13 @@ const DynamicFormWithJSONEditor: React.FC = () => {
   );
 
   const handleInputsJsonChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
-    setFormInputsJson(event.target.value);
+    const newJson = event.target.value;
+    try {
+      JSON.parse(newJson);
+      setFormInputsJson(newJson);
+    } catch (error) {
+      alert("Invalid JSON format! Please fix the errors.");
+    }
   };
 
   useEffect(() => {
@@ -73,11 +76,10 @@ const DynamicFormWithJSONEditor: React.FC = () => {
 
   const renderForm = () => {
     try {
-      const inputs = JSON.parse(formInputsJson);
       return (
         <DynamicFormBuilder
           defaultValues={{ username: "", email: "", age: "" }}
-          inputs={inputs}
+          inputs={JSON.parse(formInputsJson)}
           onChange={handleChange}
           onSubmit={handleSubmit}
           submitButton={{ text: "Submit" }}
@@ -94,18 +96,18 @@ const DynamicFormWithJSONEditor: React.FC = () => {
   };
 
   return (
-    <div>
+    <div className="jsonEditorContainer">
       <h1>JSON Form Editor</h1>
-      <div style={{ display: "flex", gap: "20px" }}>
-        <div style={{ flex: 1 }}>
+      <div className="jsonEditorContainer__textAreaContainer">
+        <div className="jsonEditorContainer__editorSection">
           <h2>Edit Form JSON</h2>
           <textarea
-            style={{ fontFamily: "monospace", width: "100%", height: "300px" }}
+            className="jsonEditorContainer__textArea"
             value={formInputsJson}
             onChange={handleInputsJsonChange}
           />
         </div>
-        <div style={{ flex: 1 }}>
+        <div className="jsonEditorContainer__renderSection">
           <h2>Dynamic Form</h2>
           {renderForm()}
         </div>

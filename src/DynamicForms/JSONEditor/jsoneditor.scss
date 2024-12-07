@@ -1,0 +1,21 @@
+.jsonEditorContainer {
+  &__textAreaContainer {
+    display: flex;
+    width: 100%;
+    gap: 50px;
+  }
+
+  &__editorSection {
+    flex: 1;
+  }
+
+  &__renderSection {
+    flex: 1;
+  }
+
+  &__textArea {
+    font-family: monospace;
+    width: 100%;
+    height: 300px;
+  }
+}

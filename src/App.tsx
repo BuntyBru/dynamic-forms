@@ -1,9 +1,9 @@
 import React from "react";
-import DynamicFormWithJSONEditor from "./DynamicForms/DynamicFormsJSONEditor";
+import DynamicFormWithJSONEditor from "./DynamicForms/JSONEditor/DynamicFormsJSONEditor";
 
 const App: React.FC = () => {
   return (
-    <div>
+    <div className="parentContainer">
       <DynamicFormWithJSONEditor />
     </div>
   );
