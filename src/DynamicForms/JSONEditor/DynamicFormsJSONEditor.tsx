@@ -1,17 +1,17 @@
-import React, { useState, ChangeEvent, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import DynamicFormBuilder from "../DynamicFormBuilder/DynamicFormBuilder";
 import "./jsoneditor.scss";
-import { SubmitResult } from "../../types/alltypes.type";
+import { SubmitResult, InputConfig } from "../../types/alltypes.type";
 import MonacoEditor from "@monaco-editor/react";
 
 const DynamicFormWithJSONEditor: React.FC = () => {
   const [formData, setFormData] = useState<Record<string, any>>({});
   const [submitResult, setSubmitResult] = useState<SubmitResult | null>(null);
   const [error, setError] = useState<boolean>(false);
-
   const [formInputsJson, setFormInputsJson] = useState<string>(
     JSON.stringify([], null, 2)
   );
+  const [parsedInputs, setParsedInputs] = useState<InputConfig[]>([]); // Type changed to InputConfig[]
 
   const handleEditorChange = (value: string | undefined) => {
     try {
@@ -38,23 +38,16 @@ const DynamicFormWithJSONEditor: React.FC = () => {
     setSubmitResult(data);
   };
 
-  const renderForm = () => {
-    return error ? (
-      <p>JSON Invalid</p>
-    ) : (
-      <DynamicFormBuilder
-        defaultValues={{ username: "", email: "", age: "" }}
-        inputs={JSON.parse(formInputsJson)}
-        onChange={handleChange}
-        onSubmit={handleSubmit}
-        submitButton={{ text: "Submit" }}
-        classPrefix="custom-form"
-        defaultInputClass="custom-input"
-        defaultLabelClass="custom-label"
-        defaultValidationErrorClass="custom-error"
-        defaultContainerClass="custom-container"
-      />
-    );
+  const handleSubmitJSON = () => {
+    if (!error) {
+      try {
+        const parsed = JSON.parse(formInputsJson);
+        setParsedInputs(parsed);
+        console.log(parsed);
+      } catch (error) {
+        setParsedInputs([]);
+      }
+    }
   };
 
   return (
@@ -63,25 +56,43 @@ const DynamicFormWithJSONEditor: React.FC = () => {
       <div className="jsonEditorContainer__textAreaContainer">
         <div className="jsonEditorContainer__editorSection">
           <h2>Edit Form JSON</h2>
-          <div style={{ height: "500px" }}>
+          <div style={{ height: "500px", marginBottom: "20px" }}>
             <MonacoEditor
               height="100%"
               defaultLanguage="json"
               value={formInputsJson}
               onChange={handleEditorChange}
               options={{
+                theme: "vs-dark",
                 automaticLayout: true,
                 minimap: { enabled: false },
                 formatOnPaste: true,
                 formatOnType: true,
-                theme: "vs-dark",
               }}
             />
+
+            <button onClick={handleSubmitJSON}>Submit JSON</button>
           </div>
         </div>
         <div className="jsonEditorContainer__renderSection">
           <h2>Dynamic Form</h2>
-          {renderForm()}
+          {error ? (
+            <p>JSON Invalid</p>
+          ) : (
+            <DynamicFormBuilder
+              key={JSON.stringify(parsedInputs)}
+              defaultValues={{ username: "", email: "", age: "" }}
+              inputs={parsedInputs}
+              onChange={handleChange}
+              onSubmit={handleSubmit}
+              submitButton={{ text: "Submit" }}
+              classPrefix="custom-form"
+              defaultInputClass="custom-input"
+              defaultLabelClass="custom-label"
+              defaultValidationErrorClass="custom-error"
+              defaultContainerClass="custom-container"
+            />
+          )}
         </div>
       </div>
       <div>
