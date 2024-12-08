@@ -69,7 +69,6 @@ const DynamicFormWithJSONEditor: React.FC = () => {
       setFormInputsJson(newJson);
     } catch (error) {
       setError(true);
-      console.error("Invalid JSON format:");
     }
   };
 
@@ -81,10 +80,9 @@ const DynamicFormWithJSONEditor: React.FC = () => {
   };
 
   const handleSubmit = (data: SubmitResult) => {
-    console.log("Form Submission Result:", data);
     setSubmitResult(data);
   };
-  console.log("formInputsJson", formInputsJson);
+
   return (
     <div className="jsonEditorContainer">
       <h1>JSON Form Editor</h1>

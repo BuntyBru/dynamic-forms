@@ -109,7 +109,7 @@ const DynamicFormBuilder = ({
       [name]: !valid ? errorMessage || true : false,
     }));
 
-    return valid;
+    return [valid, errorMessage];
   };
 
   const handleSubmit = () => {
@@ -124,12 +124,13 @@ const DynamicFormBuilder = ({
     let newErrors: Record<string, any> = {};
 
     inputs.forEach(({ name, validationRules: rules }) => {
-      if (
-        rules &&
-        (!fullValidation || !validateInput(name, form[name], rules))
-      ) {
-        valid = false;
-        newErrors[name] = validationErrors[name];
+      if (rules) {
+        const [isValid, error] = validateInput(name, form[name], rules);
+
+        if (!fullValidation || !isValid) {
+          valid = false;
+          newErrors[name] = validationErrors[name] || error;
+        }
       }
     });
 
