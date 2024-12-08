@@ -11,6 +11,7 @@ export interface ValidationRule {
 
 export interface InputConfig {
   name: string;
+  type: UserInputTypes;
   label?: string;
   placeholder?: string;
   validationRules?: ValidationRule[];
@@ -18,6 +19,8 @@ export interface InputConfig {
   transformer?: string | ((value: string) => string);
   renderIf?: (form: Record<string, any>) => boolean;
   autocomplete?: boolean;
+  options?: { value: string; label: string }[]; // For 'choice' or similar types
+  defaultValue?: any; // Optional, for pre-filling inputs
 }
 
 export interface SubmitButtonConfig {

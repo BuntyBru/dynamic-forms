@@ -23,6 +23,7 @@ const DynamicFormWithJSONEditor: React.FC = () => {
         {
           name: "username",
           label: "Username",
+          type: "input_text",
           placeholder: "Enter your username",
           validationRules: [
             { rule: "required", message: "Username is required" },
@@ -31,6 +32,7 @@ const DynamicFormWithJSONEditor: React.FC = () => {
         {
           name: "email",
           label: "Email",
+          type: "input_text",
           placeholder: "Enter your email",
           validationRules: [
             { rule: "required", message: "Email is required" },
@@ -41,12 +43,14 @@ const DynamicFormWithJSONEditor: React.FC = () => {
           name: "age",
           label: "Age",
           placeholder: "Enter your age",
+          type: "input_text",
           filter: "numeric",
           validationRules: [{ rule: "required", message: "Age is required" }],
         },
         {
           name: "bio",
           label: "Bio",
+          type: "input_text",
           placeholder: "Tell us about yourself",
           validationRules: [],
           renderIf: "hasUserName",
