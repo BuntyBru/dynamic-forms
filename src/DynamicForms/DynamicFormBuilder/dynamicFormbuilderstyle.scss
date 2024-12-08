@@ -1,0 +1,28 @@
+.formParent {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  &__inputBox {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 10px;
+    label {
+      margin-bottom: 5px;
+    }
+    input {
+      font-size: 16px;
+      padding: 2px;
+    }
+  }
+
+  &__invalidInput {
+    border: 1px solid red;
+  }
+}
+
+.errorMessage {
+  font-size: 12px;
+  color: red;
+  margin: 0px;
+}

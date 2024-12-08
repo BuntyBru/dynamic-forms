@@ -1,45 +1,56 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
   ValidationRule,
   InputConfig,
   DynamicFormBuilderProps,
 } from "../../types/alltypes.type";
+import "./dynamicFormbuilderstyle.scss";
 
-const DynamicFormBuilder: React.FC<DynamicFormBuilderProps> = ({
-  defaultValues = {},
-  inputs: initialInputs,
+const getFormDataFromJSON = (jsonObjArray: InputConfig[]) => {
+  const derivedObject: Record<string, string> = jsonObjArray.reduce(
+    (acc: Record<string, string>, item: InputConfig) => {
+      acc[item.name] = "";
+      return acc;
+    },
+    {}
+  );
+
+  return derivedObject;
+};
+
+const DynamicFormBuilder = ({
+  data,
   onChange,
   onSubmit,
-  validationTimeout = 500,
   submitButton,
-  classPrefix = "dynamic-form",
-  defaultInputClass = "input",
-  invalidInputClass = "invalid",
-  validInputClass = "valid",
-  defaultLabelClass = "label",
-  defaultValidationErrorClass = "error",
-  defaultContainerClass = "container",
-}) => {
-  const [form, setForm] = useState<Record<string, any>>({ ...defaultValues });
-  const [inputs, setInputs] = useState<InputConfig[]>([...initialInputs]);
+  logicMap,
+}: DynamicFormBuilderProps) => {
+  const [form, setForm] = useState<Record<string, any>>({});
+  const [inputs, setInputs] = useState<InputConfig[]>([]);
   const [canRender, setCanRender] = useState<string[]>([]);
   const [validationErrors, setValidationErrors] = useState<Record<string, any>>(
     {}
   );
-  const [randomisedFields, setRandomisedFields] = useState<
-    Record<string, string>
-  >({});
 
-  console.log("hello ", inputs);
+  useEffect(() => {
+    setInputs(JSON.parse(data));
+    getFormDataFromJSON(JSON.parse(data));
+  }, [data]);
+
+  useEffect(() => {
+    const renderableInputs = inputs.filter((input) => {
+      if (input.renderIf) {
+        let x = input?.renderIf as unknown as string;
+        return logicMap?.[x](form);
+      }
+      return true;
+    });
+    setCanRender(renderableInputs.map((input) => input.name));
+  }, [inputs, form]);
 
   const filterRules: Record<string, (value: string) => boolean> = {
     numeric: (value) => /^$|^[0-9]+$/.test(value),
     decimal: (value) => /^$|^[\d.]+$/.test(value),
-  };
-
-  const transformerRules: Record<string, (value: string) => string> = {
-    uppercase: (value) => value.toUpperCase(),
-    lowercase: (value) => value.toLowerCase(),
   };
 
   const validationRules: Record<string, (value: any) => boolean> = {
@@ -56,52 +67,6 @@ const DynamicFormBuilder: React.FC<DynamicFormBuilderProps> = ({
       ),
     decimal: (value) => !value || /^$|^\d+$|^\.\d+|^\d+\.\d+$/.test(value),
   };
-
-  useEffect(() => {
-    const flatInputs = inputs.flat(Infinity);
-    const newRandomisedFields = { ...randomisedFields };
-    const newForm = { ...form };
-    const newValidationErrors = { ...validationErrors };
-    const renderableFields: string[] = [];
-
-    flatInputs.forEach(({ name, renderIf, autocomplete }) => {
-      if (typeof renderIf === "function" && !renderIf(form)) {
-        delete newForm[name];
-        delete newValidationErrors[name];
-      } else {
-        renderableFields.push(name);
-      }
-
-      if (autocomplete === false && !newRandomisedFields[name]) {
-        newRandomisedFields[name] = Math.random().toString(36).substring(7);
-      } else {
-        delete newRandomisedFields[name];
-      }
-    });
-
-    setRandomisedFields((prev) => {
-      if (JSON.stringify(prev) !== JSON.stringify(newRandomisedFields)) {
-        return newRandomisedFields;
-      }
-      return prev;
-    });
-
-    setForm((prev) => {
-      if (JSON.stringify(prev) !== JSON.stringify(newForm)) {
-        return newForm;
-      }
-      return prev;
-    });
-
-    setValidationErrors((prev) => {
-      if (JSON.stringify(prev) !== JSON.stringify(newValidationErrors)) {
-        return newValidationErrors;
-      }
-      return prev;
-    });
-
-    setCanRender(renderableFields);
-  }, [inputs, form, randomisedFields]);
 
   const handleInput = (
     input: InputConfig,
@@ -120,15 +85,6 @@ const DynamicFormBuilder: React.FC<DynamicFormBuilderProps> = ({
     }
 
     onChange && onChange({ valid: validateForm(false)[0], data: newForm });
-  };
-
-  const applyFilter = (
-    value: string,
-    filter: string | ((value: string) => boolean)
-  ) => {
-    if (typeof filter === "function") return filter(value);
-    if (typeof filter === "string") return filterRules[filter]?.(value);
-    return true;
   };
 
   const validateInput = (name: string, value: any, rules: ValidationRule[]) => {
@@ -156,13 +112,18 @@ const DynamicFormBuilder: React.FC<DynamicFormBuilderProps> = ({
     return valid;
   };
 
+  const handleSubmit = () => {
+    const [valid, errors] = validateForm();
+    onSubmit && onSubmit({ valid, data: form, errors });
+  };
+
   const validateForm = (
     fullValidation = true
   ): [boolean, Record<string, any>] => {
     let valid = true;
     let newErrors: Record<string, any> = {};
 
-    inputs.flat(Infinity).forEach(({ name, validationRules: rules }) => {
+    inputs.forEach(({ name, validationRules: rules }) => {
       if (
         rules &&
         (!fullValidation || !validateInput(name, form[name], rules))
@@ -172,43 +133,41 @@ const DynamicFormBuilder: React.FC<DynamicFormBuilderProps> = ({
       }
     });
 
-    setValidationErrors(newErrors);
     return [valid, newErrors];
   };
 
-  const handleSubmit = () => {
-    const [valid, errors] = validateForm();
-    onSubmit && onSubmit({ valid, data: form, errors });
+  const applyFilter = (
+    value: string,
+    filter: string | ((value: string) => boolean)
+  ) => {
+    if (typeof filter === "function") return filter(value);
+    if (typeof filter === "string") return filterRules[filter]?.(value);
+    return true;
   };
 
   return (
-    <div className="">
-      {inputs.map((input, index) => (
-        <div key={index} className={`${classPrefix}-${defaultContainerClass}`}>
-          <label
-            htmlFor={input.name}
-            className={`${classPrefix}-${defaultLabelClass}`}
-          >
-            {input.label}
-          </label>
-          <input
-            name={input.name}
-            value={form[input.name] || ""}
-            onChange={(e) => handleInput(input, e)}
-            placeholder={input.placeholder}
-            className={`${classPrefix}-${defaultInputClass}`}
-          />
-          {validationErrors[input.name] && (
-            <p className={`${classPrefix}-${defaultValidationErrorClass}`}>
-              {validationErrors[input.name]}
-            </p>
-          )}
-        </div>
-      ))}
+    <div className="formParent">
+      {inputs
+        .filter((input) => canRender.includes(input.name))
+        .map((input, index) => (
+          <div key={index} className="formParent__inputBox">
+            <label htmlFor={input.name}>{input.label}</label>
+            <input
+              name={input.name}
+              value={form[input.name] || ""}
+              onChange={(e) => handleInput(input, e)}
+              placeholder={input.placeholder}
+              className={
+                validationErrors[input.name] ? "formParent__invalidInput" : ""
+              }
+            />
+            {validationErrors[input.name] && (
+              <p className="errorMessage">{validationErrors[input.name]}</p>
+            )}
+          </div>
+        ))}
       {submitButton && (
-        <button onClick={handleSubmit} className={`${classPrefix}-submit`}>
-          {submitButton.text}
-        </button>
+        <button onClick={handleSubmit}>{submitButton.text}</button>
       )}
     </div>
   );

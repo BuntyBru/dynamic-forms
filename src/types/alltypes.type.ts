@@ -27,7 +27,8 @@ export interface SubmitButtonConfig {
 
 export interface DynamicFormBuilderProps {
   defaultValues?: Record<string, any>;
-  inputs: InputConfig[];
+  inputs?: InputConfig[];
+  data: string;
   onChange?: (data: { valid: boolean; data: Record<string, any> }) => void;
   onSubmit?: (data: {
     valid: boolean;
@@ -37,11 +38,15 @@ export interface DynamicFormBuilderProps {
   formErrors?: Record<string, any>;
   validationTimeout?: number;
   submitButton?: SubmitButtonConfig;
-  classPrefix?: string;
-  defaultInputClass?: string;
-  invalidInputClass?: string;
-  validInputClass?: string;
-  defaultLabelClass?: string;
-  defaultValidationErrorClass?: string;
-  defaultContainerClass?: string;
+  logicMap?: Record<string, any>;
 }
+
+export type UserInputTypes =
+  | "input_text"
+  | "input_number"
+  | "input_special"
+  | "input_password"
+  | "choice"
+  | "checkbox"
+  | "toggle"
+  | "textarea";
